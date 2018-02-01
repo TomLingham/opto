@@ -1,0 +1,19 @@
+{
+  "name": "opto",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "babel --out-dir lib src",
+    "build:watch": "npm run -s build -- --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.39",
+    "@babel/core": "^7.0.0-beta.39",
+    "@babel/preset-env": "^7.0.0-beta.39"
+  },
+  "author": "",
+  "license": "ISC"
+}
