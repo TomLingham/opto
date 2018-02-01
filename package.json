@@ -6,13 +6,23 @@
   "scripts": {
     "build": "babel --out-dir lib src",
     "build:watch": "npm run -s build -- --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "flow": "flow",
+    "flow-typed": "flow-typed"
   },
   "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.39",
     "@babel/core": "^7.0.0-beta.39",
-    "@babel/preset-env": "^7.0.0-beta.39"
+    "@babel/preset-env": "^7.0.0-beta.39",
+    "@babel/preset-flow": "^7.0.0-beta.39",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-jest": "^22.1.0",
+    "flow-bin": "^0.64.0",
+    "flow-typed": "^2.3.0",
+    "jest": "^22.1.4",
+    "prettier": "^1.10.2",
+    "regenerator-runtime": "^0.11.1"
   },
   "author": "",
   "license": "ISC"
