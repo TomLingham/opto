@@ -6,7 +6,7 @@ type Optional<T> = any => Option<T>;
 
 type OptionConfig = { empty?: boolean, wildcard?: boolean };
 
-export function option<T>(name: string, config: OptionConfig = {}): Optional<T> {
+export function option<T>(name: string, config: OptionConfig = {}): <T>(T) => Option<T> {
   const { empty = false, wildcard = false } = config;
   const m = {
     [name]: function<T>(value: T) {

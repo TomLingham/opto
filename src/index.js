@@ -9,25 +9,27 @@ export type Option<T> = {|
   wildcard: boolean
 |};
 
-export type Optional<T> = (T) => Option<any>;
+export type Optional<T> = any => Option<T>;
 
-export type Handler = any => any;
+export type Handler<T> = any => T;
 
-export const match = (test: Option<any>) => (...args: Option<Handler>[]) => {
+export function match<T>(test: Option<T>, args: Option<(any) => T>[]): T {
   const optional = args.find(
     x => x instanceof test.constructor || (x && x.wildcard)
   );
 
   if (!optional) {
-    console.error(test);
+    console.error("Unwrapped:", test);
     throw new Error("Match not satisfied");
   }
 
   return optional.empty ? optional.value() : optional.value(test.value);
-};
+}
 
-export const Some: Optional<mixed> = option("Some");
+export const Some: <T>(T) => Option<T> = option("Some");
 
-export const None: Optional<void | any => any> = option("None", { empty: true });
+export const None: <K, T: void | (any => K)>(T) => Option<T> = option("None", {
+  empty: true
+});
 
-export const _ = option("_", { wildcard: true });
+export const _: Optional<mixed> = option("_", { wildcard: true });
