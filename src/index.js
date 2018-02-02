@@ -1,35 +1,61 @@
 // @flow
 
-import { option } from "./option";
-export { option } from "./option";
-
 export type Option<T> = {|
-  empty: boolean,
   value: T,
-  wildcard: boolean
+  wildcard: boolean,
+  empty: boolean
 |};
 
-export type Optional<T> = any => Option<T>;
+type OptionMatcher<T> = Option<(any) => T>;
 
-export type Handler<T> = any => T;
+export function match<T>(test: Option<T>) {
+  return function<T>(...args: Option<(any) => T>[]): T {
+    const optional = args.find(
+      x => x instanceof test.constructor || (x && x.wildcard)
+    );
 
-export function match<T>(test: Option<T>, args: Option<(any) => T>[]): T {
-  const optional = args.find(
-    x => x instanceof test.constructor || (x && x.wildcard)
-  );
+    if (!optional) {
+      console.error("Unwrapped:", test);
+      throw new Error("Match not satisfied");
+    }
 
-  if (!optional) {
-    console.error("Unwrapped:", test);
-    throw new Error("Match not satisfied");
-  }
-
-  return optional.empty ? optional.value() : optional.value(test.value);
+    return optional.empty ? optional.value() : optional.value(test.value);
+  };
 }
 
-export const Some: <T>(T) => Option<T> = option("Some");
+export function createOption(
+  name: string,
+  config: { empty?: boolean, wildcard?: boolean } = {}
+): <T>(T) => Option<T> {
+  const { empty = false, wildcard = false } = config;
+  const m = {
+    [name]: function(value) {
+      Object.defineProperties(this, {
+        value: {
+          value,
+          enumerable: !empty,
+          writable: false
+        },
+        empty: {
+          value: empty,
+          writable: false,
+          enumerable: false
+        },
+        wildcard: {
+          value: wildcard,
+          writable: false,
+          enumerable: false
+        }
+      });
+    }
+  };
+  return val => new m[name](val);
+}
 
-export const None: <K, T: void | (any => K)>(T) => Option<T> = option("None", {
+export const Some = createOption("Some");
+
+export const None: <T>(T) => Option<any> = createOption("None", {
   empty: true
 });
 
-export const _: Optional<mixed> = option("_", { wildcard: true });
+export const _ = createOption("_", { wildcard: true });
