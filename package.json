@@ -1,7 +1,7 @@
 {
   "name": "opto",
   "version": "0.0.1",
-  "description": "",
+  "description": "Optionals with Flow types support.",
   "main": "index.js",
   "scripts": {
     "build": "babel --out-dir lib src",

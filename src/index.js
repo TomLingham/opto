@@ -9,7 +9,7 @@ export type Option<T> = {|
 type OptionMatcher<T> = Option<(any) => T>;
 
 export function match<T>(test: Option<T>) {
-  return function<T>(...args: Option<(any) => T>[]): T {
+  return function<T>(...args: Option<(T?: T) => T>[]): T {
     const optional = args.find(
       x => x instanceof test.constructor || (x && x.wildcard)
     );
@@ -54,8 +54,14 @@ export function createOption(
 
 export const Some = createOption("Some");
 
-export const None: <T>(T) => Option<any> = createOption("None", {
+type Rt<T> = (void) => T;
+
+export const None: <K, T>(K?: Rt<T>) => Option<T> = createOption("None", {
   empty: true
 });
+
+//export const None: <T>(T?: () => any) => Option<any> = createOption("None", {
+//  empty: true
+//});
 
 export const _ = createOption("_", { wildcard: true });

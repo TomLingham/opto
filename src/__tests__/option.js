@@ -2,6 +2,8 @@
 
 import { Some, None, _, match, createOption, type Option } from "..";
 
+const Foo = createOption("Foo");
+
 function someOrNone(value: number): Option<string> {
   if (value > 20) {
     return Some("string");
@@ -10,7 +12,7 @@ function someOrNone(value: number): Option<string> {
   return None();
 }
 
-function anotherOptional(str: string) {
+function anotherOptional(str: string): Option<string> {
   if (str.startsWith("a")) {
     return Some("Alice")
   }
@@ -18,7 +20,7 @@ function anotherOptional(str: string) {
     return Some("Bob")
   }
   if (str.startsWith("z")) {
-    return Some("Zulu")
+    return Foo("Zulu")
   }
 
   return None();
@@ -37,8 +39,8 @@ describe("match", () => {
 
   test("should match some", () => {
     const result = match(someOrNone(50))(
-      Some(x => "some"),
-      None(() => "none"),
+      Some(x => true),
+      None(() => "string"),
     );
 
     expect(result).toBe("some");
@@ -86,5 +88,15 @@ describe("match", () => {
     );
 
     expect(result).toBeUndefined();
+  });
+
+  test("Cusom optionals should work as expected", () => {
+    const result = match(anotherOptional('zia'))(
+      Some(x => x),
+      None(x => x),
+      Foo(x => x),
+    );
+
+    expect(result).toBe("Zulu");
   });
 });
