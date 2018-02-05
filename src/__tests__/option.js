@@ -26,10 +26,13 @@ function div(x, y): Option<number> {
   }
 }
 
+function someAsyncAction(): Promise<Option<string>> {
+  return Promise.resolve("some");
+}
+
 describe("match", () => {
   test("should match none", () => {
-    const son = someOrNone(5);
-    const result = match(son)(Some(() => "some"), None(() => "none"));
+    const result = match(someOrNone(5))(Some(() => "some"), None(() => "none"));
 
     expect(result).toBe("none");
   });
@@ -86,6 +89,11 @@ describe("match", () => {
     expect(result).toBe("Zulu");
   });
 
+  test("promises should also work good", () => {
+    const result = someAsyncAction();
+
+    const r = unwrap(result);
+  });
 });
 
 describe("unwrap", () => {
@@ -98,14 +106,14 @@ describe("unwrap", () => {
   test("should throw when attempting to unwrap a value that is a None", () => {
     const val = div(5, 0);
 
-    expect(() => (unwrap(val) / 3)).toThrow();
+    expect(() => unwrap(val) / 3).toThrow();
   });
-})
+});
 
 describe("unwrapOr", () => {
-  test("should throw when attempting to unwrap a value that is a None", () => {
+  test("should use the default value when attempting to unwrap a value that is a None", () => {
     const val = unwrapOr(div(5, 0), 0);
 
     expect(val).toBe(0);
   });
-})
+});

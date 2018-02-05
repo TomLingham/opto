@@ -5,11 +5,13 @@ export type Option<T> = T | void;
 type OptionHandler<T> = {
   type: string,
   any: boolean,
-  handler: (arg?: mixed) => T,
+  handler: (arg?: Option<mixed>) => T,
   none: boolean
 };
 
 type Optional = <T>((T) => T) => OptionHandler<T>;
+
+const OptionalTypeKey = Symbol('opto.typeKey');
 
 export const createOptional = (
   type: string,
@@ -17,13 +19,36 @@ export const createOptional = (
 ): Optional => {
   const m = {
     [type]: function(handler) {
-      this.any = any;
-      this.handler = handler;
-      this.type = type;
-      this.none = none;
+      Object.defineProperties(this, {
+        any: {
+          value: any,
+          enumerable: false,
+          writable: false
+        },
+        handler: {
+          value: handler,
+          enumerable: false,
+          writable: false
+        },
+        none: {
+          value: none,
+          enumerable: false,
+          writable: false
+        },
+        type: {
+          value: type,
+          enumerable: false,
+          writable: false
+        }
+      });
     }
   };
-  return x => new m[type](x);
+  return handler => {
+    if (typeof handler === "function") {
+      handler.$$typeof = OptionalTypeKey;
+    };
+    return new m[type](handler);
+  };
 };
 
 export const Some = createOptional("Some");
