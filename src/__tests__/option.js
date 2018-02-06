@@ -1,6 +1,15 @@
 // @flow
 
-import { Some, None, _, unwrap, unwrapOr, match, type Option } from "..";
+import {
+  Some,
+  None,
+  _,
+  unwrap,
+  unwrapOr,
+  match,
+  type Option,
+  unexpected
+} from "..";
 
 function someOrNone(value: number): Option<string> {
   if (value > 20) {
@@ -30,6 +39,16 @@ function someAsyncAction(): Promise<Option<string>> {
   return Promise.resolve("some");
 }
 
+type Animal = "Cat" | "Dog" | "Cow" | "Pig";
+
+function branchingMethod(id: number): Option<Animal> {
+  if (id === 1) return "Cat";
+  if (id === 2) return "Dog";
+  if (id === 3) return "Cow";
+
+  return "Pig";
+}
+
 describe("match", () => {
   test("should match none", () => {
     const result = match(someOrNone(5))(Some(() => "some"), None(() => "none"));
@@ -40,7 +59,7 @@ describe("match", () => {
   test("should match some", () => {
     const result = match(someOrNone(50))(
       Some(x => "some"),
-      None(() => "string")
+      None(() => "none"),
     );
 
     expect(result).toBe("some");
@@ -115,5 +134,19 @@ describe("unwrapOr", () => {
     const val = unwrapOr(div(5, 0), 0);
 
     expect(val).toBe(0);
+  });
+});
+
+describe("unexpected", () => {
+  test("should have type errors", () => {
+    let result;
+    let x = unwrap(branchingMethod(1));
+
+    switch (x) {
+      default:
+        unexpected(x);
+    }
+
+    expect(result);
   });
 });

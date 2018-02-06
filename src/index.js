@@ -2,84 +2,74 @@
 
 export type Option<T> = T | void;
 
-type OptionHandler<T> = {
-  type: string,
-  any: boolean,
-  handler: (arg?: Option<mixed>) => T,
-  none: boolean
-};
+opaque type Empty = "impossible" & "empty";
 
-type Optional = <T>((T) => T) => OptionHandler<T>;
+const SymbolType = Symbol("opto.type");
 
-const OptionalTypeKey = Symbol('opto.typeKey');
+export function Some<T, K>(handler: T => K): T => K {
+  return Object.defineProperty(handler, SymbolType, {
+    value: "Some",
+    enumerable: false,
+    writable: false
+  });
+}
 
-export const createOptional = (
-  type: string,
-  { any = false, none = false }: { any?: boolean, none?: boolean } = {}
-): Optional => {
-  const m = {
-    [type]: function(handler) {
-      Object.defineProperties(this, {
-        any: {
-          value: any,
-          enumerable: false,
-          writable: false
-        },
-        handler: {
-          value: handler,
-          enumerable: false,
-          writable: false
-        },
-        none: {
-          value: none,
-          enumerable: false,
-          writable: false
-        },
-        type: {
-          value: type,
-          enumerable: false,
-          writable: false
-        }
-      });
-    }
-  };
-  return handler => {
-    if (typeof handler === "function") {
-      handler.$$typeof = OptionalTypeKey;
-    };
-    return new m[type](handler);
-  };
-};
+export function None<T>(handler: () => T): () => T {
+  return Object.defineProperty(() => handler(), SymbolType, {
+    value: "None",
+    enumerable: false,
+    writable: false
+  });
+}
 
-export const Some = createOptional("Some");
-
-export const None = createOptional("None", { none: true });
-
-export const _ = createOptional("_", { any: true });
+export function _<T, K>(handler: T => K): T => K {
+  return Object.defineProperty(handler, SymbolType, {
+    value: "Any",
+    enumerable: false,
+    writable: false
+  });
+}
 
 export function unwrap<T>(value: Option<T>): T {
   if (value == null) {
-    throw new Error("Unable to unwrap Option<None>");
+    throw new Error("Attempted to unwrap Option<None>");
   }
 
   return value;
+}
+
+export function unexpected(impossible: Empty) {
+  console.error("Default case executed with unexpected type", impossible);
+  throw new Error("Unexpected state not handled in `switch`.");
 }
 
 export function unwrapOr<T>(value: Option<T>, orValue: T): T {
   return value == null ? orValue : value;
 }
 
-export function match<T>(test: Option<T>) {
-  return function<T>(...args: OptionHandler<T>[]): T {
+export function unsafeUnwrap<T>(value: Option<T>): T {
+  return value;
+}
+
+export function match<T>(
+  test: Option<T>
+): <Y>(...args: Array<(T) => Y>) => Y {
+  return function<K>(...args: Array<(T) => K>): K {
     const isNone = test == null;
 
-    const optional = args.find(x => isNone === x.none || x.any);
+    const optional = args.find(handler => {
+      return (
+        (handler[SymbolType] === "None" && isNone) ||
+        (handler[SymbolType] === "Some" && !isNone) ||
+        handler[SymbolType] === "Any"
+      );
+    });
 
     if (!optional) {
       console.error("Unwrapped:", typeof test, test);
       throw new Error("Match not satisfied");
     }
 
-    return optional.none ? optional.handler() : optional.handler(test);
+    return optional(unsafeUnwrap(test));
   };
 }
